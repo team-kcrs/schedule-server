@@ -45,7 +45,7 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
 	// MySQL
-	implementation("mysql:mysql-connector-j:8.0.41")
+	runtimeOnly("com.mysql:mysql-connector-j:8.4.0")
 }
 
 tasks.withType<Test> {
