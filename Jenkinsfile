@@ -1,16 +1,17 @@
 pipeline {
     agent any
     stages {
-        stage('Git Clone') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/team-kcrs/schedule-server.git'
+                git branch: 'main',
+                    credentialsId: 'wonnx-full-privileges',
+                    url: 'https://github.com/team-kcrs/schedule-server.git'
             }
         }
         stage('Build Backend') {
             steps {
-                dir('./') {
-                    sh './gradlew clean build'
-                }
+                sh 'chmod +x gradlew'
+                sh './gradlew clean build'
             }
         }
     }
