@@ -21,7 +21,10 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'chmod +x gradlew'
-                sh './gradlew clean build -Dspring.profiles.active=prod'
+                sh '''
+                    cp .env src/main/resources/application-prod.properties
+                    ./gradlew clean build -Dspring.profiles.active=prod
+                '''
             }
         }
     }
