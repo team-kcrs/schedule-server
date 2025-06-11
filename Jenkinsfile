@@ -9,7 +9,7 @@ pipeline {
         stage('Prepare .env') {
             steps {
                 withCredentials([file(credentialsId: 'wotr-schedule-server-env-file', variable: 'ENV_PATH')]) {
-                    cp $ENV_PATH .env
+                    sh 'cp $ENV_PATH .env'
                 }
             }
         }
