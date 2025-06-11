@@ -7,14 +7,14 @@ pipeline {
     stages {
         stage('Write .env') {
             steps {
-                writeFile file: '.env', text: "${ENV_FILE}"
+                writeFile file: '.env', text: ENV_FILE
             }
         }
         stage('Checkout') {
             steps {
                 git branch: 'main',
                     // Jenkins Credentials ID
-                    credentialsId: 'wonnx-full-privileges',
+                    credentialsId: 'wotr-schedule-server-credential',
                     url: 'https://github.com/team-kcrs/schedule-server.git'
             }
         }
