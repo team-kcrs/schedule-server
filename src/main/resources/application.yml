@@ -8,4 +8,4 @@ spring:
     name:
       schedule-server
   profiles:
-    active: prod
+    active: local
