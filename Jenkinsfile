@@ -1,29 +1,33 @@
 pipeline {
     agent any
+
     environment {
-        // Jenkins Credentials ID
-        ENV_FILE = credentials('wotr-schedule-server-env')
+        SPRING_PROFILE = "prod"
     }
+
     stages {
-        stage('Write .env') {
+        stage('Prepare .env') {
             steps {
-                writeFile file: '.env', text: ENV_FILE
+                withCredentials([file(credentialsId: 'wotr-schedule-server-env-file', variable: 'ENV_PATH')]) {
+                    cp $ENV_PATH .env
+                }
             }
         }
+
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    // Jenkins Credentials ID
                     credentialsId: 'wotr-schedule-server-credential',
                     url: 'https://github.com/team-kcrs/schedule-server.git'
             }
         }
+
         stage('Build') {
             steps {
                 sh 'chmod +x gradlew'
                 sh '''
                     cp .env src/main/resources/application-prod.properties
-                    ./gradlew clean build -Dspring.profiles.active=prod
+                    ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
                 '''
             }
         }
