@@ -23,7 +23,15 @@ pipeline {
         stage('Prepare .env') {
             steps {
                 withCredentials([file(credentialsId: 'wotr-server-env-file', variable: 'ENV_PATH')]) {
-                    sh 'cp "$ENV_PATH" "$WORKSPACE/.env"'
+                    sh '''
+                      if [ -f "$WORKSPACE/wotr-server/.env" ]; then
+                        echo "[DEBUG] Existing .env:"
+                        ls -l "$WORKSPACE/.env"
+                      fi
+
+                      rm -f "$WORKSPACE/wotr-server/.env"
+                      cp "$ENV_PATH" "$WORKSPACE/.env"
+                    '''
                 }
             }
         }
