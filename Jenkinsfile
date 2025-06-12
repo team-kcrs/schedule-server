@@ -40,11 +40,7 @@ pipeline {
             steps {
                 sh '''
                     chmod +x gradlew
-
-                    set -a
-                    . .env
-                    set +a
-
+                    export $(cat .env | xargs)
                     ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
                 '''
             }
