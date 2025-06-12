@@ -24,12 +24,12 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'wotr-server-env-file', variable: 'ENV_PATH')]) {
                     sh '''
-                      if [ -f "$WORKSPACE/wotr-server/.env" ]; then
+                      if [ -f "$WORKSPACE/.env" ]; then
                         echo "[DEBUG] Existing .env:"
                         ls -l "$WORKSPACE/.env"
                       fi
 
-                      rm -f "$WORKSPACE/wotr-server/.env"
+                      rm -f "$WORKSPACE/.env"
                       cp "$ENV_PATH" "$WORKSPACE/.env"
                     '''
                 }
