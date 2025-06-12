@@ -39,7 +39,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    chmod +x gradlew'
+                    chmod +x gradlew
 
                     set -a
                     . .env
