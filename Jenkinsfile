@@ -31,9 +31,11 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'chmod +x gradlew'
+
+                // dash 에서 source 대신 . (dot) 사용
                 sh '''
                     set -a
-                    source .env
+                    . .env
                     set +a
 
                     ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
