@@ -3,6 +3,11 @@ pipeline {
 
     environment {
         SPRING_PROFILE = "prod"
+
+        // AWS ECR
+        AWS_REGION = "ap-northeast-2"
+        ECR_REPO = "688567260818.dkr.ecr.ap-northeast-2.amazonaws.com/wotr-ecr"
+        IMAGE_TAG = "latest"
     }
 
     stages {
@@ -29,6 +34,35 @@ pipeline {
                     cp .env src/main/resources/application-prod.properties
                     ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
                 '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build -t $IMAGE_NAME .
+                    docker tag $IMAGE_NAME:latest $ECR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'wotr-aws-credentials'
+                ]]) {
+                    sh '''
+                        aws ecr get-login-password --region $AWS_REGION \
+                        | docker login --username AWS --password-stdin $ECR_REPO
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh 'docker push $ECR_REPO:$IMAGE_TAG'
             }
         }
     }
