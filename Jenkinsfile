@@ -8,6 +8,7 @@ pipeline {
         AWS_REGION = "ap-northeast-2"
         ECR_REPO = "688567260818.dkr.ecr.ap-northeast-2.amazonaws.com/wotr-ecr"
         IMAGE_TAG = "latest"
+        IMAGE_NAME="jenkins-with-awscli"
     }
 
     stages {
@@ -31,7 +32,10 @@ pipeline {
             steps {
                 sh 'chmod +x gradlew'
                 sh '''
-                    cp .env src/main/resources/application-prod.properties
+                    set -a
+                    source .env
+                    set +a
+
                     ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
                 '''
             }
