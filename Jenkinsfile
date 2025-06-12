@@ -38,16 +38,21 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'chmod +x gradlew'
+                dir('wotr-server') {
+                    sh 'chmod +x gradlew'
 
-                // dash 에서 source 대신 . (dot) 사용
-                sh '''
-                    set -a
-                    . .env
-                    set +a
+                    sh '''
+                        echo "Current: $(pwd)"
+                        echo "Files:"
+                        ls -al
 
-                    ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
-                '''
+                        set -a
+                        . .env
+                        set +a
+
+                        ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
+                    '''
+                }
             }
         }
 
