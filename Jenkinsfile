@@ -23,7 +23,7 @@ pipeline {
         stage('Prepare .env') {
             steps {
                 withCredentials([file(credentialsId: 'wotr-server-env-file', variable: 'ENV_PATH')]) {
-                    sh 'cp $ENV_PATH .env'
+                    sh 'cp "$ENV_PATH" "$WORKSPACE/.env"'
                 }
             }
         }
