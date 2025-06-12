@@ -6,6 +6,6 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name:
-      schedule-server
+      wotr-server
   profiles:
     active: prod

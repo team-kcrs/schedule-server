@@ -1,1 +1,1 @@
-rootProject.name = "schedule-server"
+rootProject.name = "wotr-server"

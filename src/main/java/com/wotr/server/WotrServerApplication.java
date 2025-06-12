@@ -1,13 +1,13 @@
-package com.wotr.schedule;
+package com.wotr.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ScheduleServerApplication {
+public class WotrServerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ScheduleServerApplication.class, args);
+		SpringApplication.run(WotrServerApplication.class, args);
 	}
 
 }
