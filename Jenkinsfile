@@ -12,19 +12,19 @@ pipeline {
     }
 
     stages {
-        stage('Prepare .env') {
-            steps {
-                withCredentials([file(credentialsId: 'wotr-server-env-file', variable: 'ENV_PATH')]) {
-                    sh 'cp $ENV_PATH .env'
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 git branch: 'main',
                     credentialsId: 'wotr-git-credentials',
                     url: 'https://github.com/team-kcrs/wotr-server.git'
+            }
+        }
+
+        stage('Prepare .env') {
+            steps {
+                withCredentials([file(credentialsId: 'wotr-server-env-file', variable: 'ENV_PATH')]) {
+                    sh 'cp $ENV_PATH .env'
+                }
             }
         }
 
