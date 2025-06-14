@@ -11,12 +11,25 @@ pipeline {
         IMAGE_NAME="jenkins-with-awscli"
     }
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir() // workspace clean
+            }
+        }
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    credentialsId: 'wotr-git-credentials',
-                    url: 'https://github.com/team-kcrs/wotr-server.git'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/team-kcrs/wotr-server.git',
+                        credentialsId: 'wotr-git-credentials'
+                    ]]
+                ])
             }
         }
 
