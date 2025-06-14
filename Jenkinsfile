@@ -7,7 +7,7 @@ pipeline {
         // AWS ECR
         AWS_REGION = "ap-northeast-2"
         ECR_REPO = "688567260818.dkr.ecr.ap-northeast-2.amazonaws.com/wotr-ecr"
-        IMAGE_TAG = "latest"
+        IMAGE_TAG = ""
         IMAGE_NAME="jenkins-with-awscli"
     }
 
@@ -56,6 +56,15 @@ pipeline {
                     export $(cat .env | xargs)
                     ./gradlew clean build -Dspring.profiles.active=$SPRING_PROFILE
                 '''
+            }
+        }
+
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    def shortGitCommit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = shortGitCommit
+                }
             }
         }
 
