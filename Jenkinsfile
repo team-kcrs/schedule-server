@@ -87,5 +87,40 @@ pipeline {
                 sh 'docker push $ECR_REPO:$IMAGE_TAG'
             }
         }
+
+        stage('Register Task Definition') {
+            steps {
+                writeFile file: 'task-definition.json',
+                          text: """
+                                {
+                                    "family": "wotr-fargate-task",
+                                    "networkMode": "awsvpc",
+                                    "executionRoleArn": "arn:aws:iam::688567260818:role/ecsTaskExecutionRole",
+                                    "requiresCompatibilities": ["FARGATE"],
+                                    "cpu": "512",
+                                    "memory": "1024",
+                                    "containerDefinitions": [
+                                        {
+                                            "name": "wotr-server-fargate",
+                                            "image": "$ECR_REPO:$IMAGE_TAG",
+                                            "portMappings": [
+                                                {
+                                                    "containerPort": 8080,
+                                                    "protocol": "tcp"
+                                                }
+                                            ],
+                                            "essential": true
+                                        }
+                                    ]
+                                }
+                                """
+
+                sh '''
+                    aws ecs register-task-definition \
+                        --cli-input-json file://task-definition.json \
+                        --region $AWS_REGION
+                '''
+            }
+        }
     }
 }
