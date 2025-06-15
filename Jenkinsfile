@@ -7,7 +7,6 @@ pipeline {
         // AWS ECR
         AWS_REGION = "ap-northeast-2"
         ECR_REPO = "688567260818.dkr.ecr.ap-northeast-2.amazonaws.com/wotr-ecr"
-        IMAGE_TAG = ""
         IMAGE_NAME="jenkins-with-awscli"
     }
 
@@ -62,8 +61,10 @@ pipeline {
         stage('Set Image Tag') {
             steps {
                 script {
+                    def timestamp = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
                     def shortGitCommit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.IMAGE_TAG = shortGitCommit
+                    env.IMAGE_TAG = "${timestamp}-${shortGitCommit}"
+                    echo "Generated IMAGE_TAG: ${env.IMAGE_TAG}"
                 }
             }
         }
