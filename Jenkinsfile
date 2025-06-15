@@ -78,7 +78,7 @@ pipeline {
             }
         }
 
-        stage('Login to ECR') {
+        stage('Login & Push to ECR') {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -87,49 +87,49 @@ pipeline {
                     sh '''
                         aws ecr get-login-password --region $AWS_REGION \
                         | docker login --username AWS --password-stdin $ECR_REPO
+                        docker push $ECR_REPO:$IMAGE_TAG
                     '''
                 }
             }
         }
 
-        stage('Push to ECR') {
+        stage('Login & Register Task Definition') {
             steps {
-                sh 'docker push $ECR_REPO:$IMAGE_TAG'
-            }
-        }
+                withCredentials([[
+                            $class: 'AmazonWebServicesCredentialsBinding',
+                            credentialsId: 'wotr-aws-credentials'
+                        ]]) {
+                    writeFile file: 'task-definition.json',
+                              text: """
+                                    {
+                                        "family": "wotr-fargate-task",
+                                        "networkMode": "awsvpc",
+                                        "executionRoleArn": "arn:aws:iam::688567260818:role/ecsTaskExecutionRole",
+                                        "requiresCompatibilities": ["FARGATE"],
+                                        "cpu": "512",
+                                        "memory": "1024",
+                                        "containerDefinitions": [
+                                            {
+                                                "name": "wotr-server-fargate",
+                                                "image": "$ECR_REPO:$IMAGE_TAG",
+                                                "portMappings": [
+                                                    {
+                                                        "containerPort": 8080,
+                                                        "protocol": "tcp"
+                                                    }
+                                                ],
+                                                "essential": true
+                                            }
+                                        ]
+                                    }
+                                    """
 
-        stage('Register Task Definition') {
-            steps {
-                writeFile file: 'task-definition.json',
-                          text: """
-                                {
-                                    "family": "wotr-fargate-task",
-                                    "networkMode": "awsvpc",
-                                    "executionRoleArn": "arn:aws:iam::688567260818:role/ecsTaskExecutionRole",
-                                    "requiresCompatibilities": ["FARGATE"],
-                                    "cpu": "512",
-                                    "memory": "1024",
-                                    "containerDefinitions": [
-                                        {
-                                            "name": "wotr-server-fargate",
-                                            "image": "$ECR_REPO:$IMAGE_TAG",
-                                            "portMappings": [
-                                                {
-                                                    "containerPort": 8080,
-                                                    "protocol": "tcp"
-                                                }
-                                            ],
-                                            "essential": true
-                                        }
-                                    ]
-                                }
-                                """
-
-                sh '''
-                    aws ecs register-task-definition \
-                        --cli-input-json file://task-definition.json \
-                        --region $AWS_REGION
-                '''
+                    sh '''
+                        aws ecs register-task-definition \
+                            --cli-input-json file://task-definition.json \
+                            --region $AWS_REGION
+                    '''
+                }
             }
         }
     }
