@@ -82,7 +82,7 @@ pipeline {
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'wotr-aws-credentials'
+                    credentialsId: 'wotr-aws-ecr-credentials'
                 ]]) {
                     sh '''
                         aws ecr get-login-password --region $AWS_REGION \
@@ -97,7 +97,7 @@ pipeline {
             steps {
                 withCredentials([[
                             $class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: 'wotr-aws-credentials'
+                            credentialsId: 'wotr-aws-ecs-credentials'
                         ]]) {
                     writeFile file: 'task-definition.json',
                               text: """
