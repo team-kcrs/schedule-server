@@ -93,42 +93,74 @@ pipeline {
             }
         }
 
-        stage('Login & Register Task Definition') {
+        stage('Fetch Env From S3') {
             steps {
                 withCredentials([[
-                            $class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: 'wotr-aws-ecs-credentials'
-                        ]]) {
-                    writeFile file: 'task-definition.json',
-                              text: """
-                                    {
-                                        "family": "wotr-fargate-task",
-                                        "networkMode": "awsvpc",
-                                        "executionRoleArn": "arn:aws:iam::688567260818:role/ecsTaskExecutionRole",
-                                        "requiresCompatibilities": ["FARGATE"],
-                                        "cpu": "512",
-                                        "memory": "1024",
-                                        "containerDefinitions": [
-                                            {
-                                                "name": "wotr-server-fargate",
-                                                "image": "$ECR_REPO:$IMAGE_TAG",
-                                                "portMappings": [
-                                                    {
-                                                        "containerPort": 8080,
-                                                        "protocol": "tcp"
-                                                    }
-                                                ],
-                                                "essential": true
-                                            }
-                                        ]
-                                    }
-                                    """
-
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'wotr-aws-s3-credentials'
+                ]]) {
                     sh '''
-                        aws ecs register-task-definition \
-                            --cli-input-json file://task-definition.json \
-                            --region $AWS_REGION
+                        aws s3 cp s3://wotr-server-s3/.env .env
                     '''
+                }
+            }
+        }
+
+        stage('Parse Env and Register Task Definition') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'wotr-aws-ecs-credentials'
+                ]]) {
+                    script {
+                        def envMap = [:]
+                        def envLines = readFile('.env').split("\n")
+                        envLines.each {
+                            if (it.trim() && it.contains('=')) {
+                                def (key, value) = it.split('=', 2)
+                                envMap[key.trim()] = value.trim()
+                            }
+                        }
+
+                        def envJson = envMap.collect { key, val ->
+                            """{ "name": "${key}", "value": "${val}" }"""
+                        }.join(',')
+
+                        def taskDefJson = """
+                        {
+                          "family": "wotr-fargate-task",
+                          "networkMode": "awsvpc",
+                          "executionRoleArn": "arn:aws:iam::688567260818:role/ecsTaskExecutionRole",
+                          "requiresCompatibilities": ["FARGATE"],
+                          "cpu": "512",
+                          "memory": "1024",
+                          "containerDefinitions": [
+                            {
+                              "name": "wotr-server-fargate",
+                              "image": "${env.ECR_REPO}:${env.IMAGE_TAG}",
+                              "portMappings": [
+                                {
+                                  "containerPort": 8080,
+                                  "protocol": "tcp"
+                                }
+                              ],
+                              "essential": true,
+                              "environment": [
+                                ${envJson}
+                              ]
+                            }
+                          ]
+                        }
+                        """
+
+                        writeFile file: 'task-definition.json', text: taskDefJson
+
+                        sh '''
+                            aws ecs register-task-definition \
+                                --cli-input-json file://task-definition.json \
+                                --region $AWS_REGION
+                        '''
+                    }
                 }
             }
         }
